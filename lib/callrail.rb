@@ -10,15 +10,15 @@ module Callrail
     MAX_PAGE_SIZE = '250'
 
     def initialize(opts = {})
-      @api_version = opts[:api_version] || "v2"
+      @api_version = opts[:api_version] || "v3"
       @url = "https://api.callrail.com/#{@api_version}/a"
       @auth = "Token token=" + opts[:key]
-      @account_id = opts[:account_id].to_s if opts[:account_id]  
+      @account_id = opts[:account_id].to_s if opts[:account_id]
     end
 
     def set_account_id(opts = {})
       @account_id = opts[:account_id].to_s
-    end    
+    end
 
     def parse_json(response)
       body = JSON.parse(response.to_str) if response.code == 200 || response.code == 201
@@ -46,7 +46,7 @@ module Callrail
       #Filters
         if opts[:filtering]
           opts[:filtering].each do |filter|
-            params[filter[:field].to_sym] = filter[:value]            
+            params[filter[:field].to_sym] = filter[:value]
           end
         end
       #Shared Params
@@ -61,7 +61,7 @@ module Callrail
         params[:keyword_spotting_enabled] = opts[:keyword_spotting_enabled] if opts[:keyword_spotting_enabled]
         params[:callscribe_enabled] = opts[:callscribe_enabled] if opts[:callscribe_enabled]
         params[:time_zone] = opts[:time_zone] if opts[:time_zone]
-          # USA Values: America/New_York (Eastern Time Zone), America/Indiana/Indianapolis (Indiana Time Zone), America/Chicago (Central Time Zone), 
+          # USA Values: America/New_York (Eastern Time Zone), America/Indiana/Indianapolis (Indiana Time Zone), America/Chicago (Central Time Zone),
           #             America/Denver (Mountain Time Zone), America/Phoenix (Arizona Time Zone), America/Los_Angeles (Pacific Time Zone)
           #             Full List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
         params[:swap_exclude_jquery] = opts[:swap_exclude_jquery] if opts[:swap_exclude_jquery]
@@ -74,7 +74,7 @@ module Callrail
         params[:first_name] = opts[:first_name] if opts[:first_name]
         params[:last_name] = opts[:last_name] if opts[:last_name]
         params[:email] = opts[:email] if opts[:email]
-        params[:role] = opts[:role] if opts[:role]      
+        params[:role] = opts[:role] if opts[:role]
         params[:password] = opts[:password] if opts[:password]
         params[:companies] = opts[:companies] if opts[:companies]
         params[:company_ids] = opts[:company_ids] if opts[:company_ids] #Callrail disabled
@@ -91,8 +91,8 @@ module Callrail
         params[:sms_enabled] = opts[:sms_enabled] if opts[:sms_enabled]
         params[:tracking_number] = opts[:tracking_number] if opts[:tracking_number]
       #Integration Params
-        params[:config] = opts[:config] if opts[:config] 
-        params[:state] = opts[:state] if opts[:state] 
+        params[:config] = opts[:config] if opts[:config]
+        params[:state] = opts[:state] if opts[:state]
       #Call Params
         # Sorting: customer_name, customer_phone_number, duration, start_time, source
         # Filtering: date_range, answer_status, device, direction, lead_status
@@ -125,27 +125,27 @@ module Callrail
       params = set_params(opts)
       response = parse_json(RestClient.get(@url+params[:path], params: params,:Authorization => @auth)).body
       total_pages = response["total_pages"] || 1
-      total_records = response["total_records"] || 1              
+      total_records = response["total_records"] || 1
 
       while total_pages > 0
-        response = (opts[:data]) ? response[opts[:data]] : response 
+        response = (opts[:data]) ? response[opts[:data]] : response
         responses.push(response)
         params[:page] += 1 unless opts[:page]
-        total_pages -= 1     
-        response = parse_json(RestClient.get(@url+params[:path], params: params,:Authorization => @auth)).body unless total_pages < 1            
+        total_pages -= 1
+        response = parse_json(RestClient.get(@url+params[:path], params: params,:Authorization => @auth)).body unless total_pages < 1
       end
       return responses.flatten! || responses
     end
 
-# Account 
+# Account
     def get_accounts(opts = {})
       opts[:path] = (opts[:account_id]) ? "/" + opts[:account_id].to_s + ".json" : ".json"
       opts[:data] = "accounts" unless  opts[:account_id]
-      return get_responses(opts)  
+      return get_responses(opts)
     end
 
-# Company 
-    def get_companies(opts = {}) 
+# Company
+    def get_companies(opts = {})
       opts[:path] = (opts[:company_id]) ? "/" + @account_id + "/companies/" + opts[:company_id].to_s + ".json" : "/" + @account_id + "/companies.json"
       opts[:data] = "companies" unless opts[:company_id]
       return get_responses(opts)
@@ -155,13 +155,13 @@ module Callrail
       params = set_params(opts)
       path = "/" + @account_id + "/companies.json"
       response = parse_json(RestClient.post(@url+path, params ,:Authorization => @auth))
-      return response   
+      return response
     end
 
     def update_company(opts = {})
-      params = set_params(opts) 
+      params = set_params(opts)
       path = "/" + @account_id + "/companies/" + opts[:company_id].to_s + ".json"
-      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth)).body      
+      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth)).body
     end
 
     def disable_company( opts = {})
@@ -169,7 +169,7 @@ module Callrail
       return parse_json(RestClient.delete(@url+path, :Authorization => @auth))
     end
 
-# User 
+# User
     def get_users( opts={} )
       opts[:path] = (opts[:user_id]) ? "/" + @account_id + "/users/" + opts[:user_id].to_s + ".json" : "/" + @account_id + "/users.json"
       opts[:data] = "users" unless opts[:user_id]
@@ -183,27 +183,27 @@ module Callrail
     end
 
     def update_user(opts = {})
-      params = set_params(opts) 
+      params = set_params(opts)
       path =  "/" + @account_id + "/users/" + opts[:user_id].to_s + ".json"
-      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth))      
+      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth))
     end
 
 # Calls
     def get_calls( opts={} )
-      opts[:path] = (opts[:call_id]) ? "/" + @account_id + "/calls/" + opts[:call_id].to_s + ".json" : "/" + @account_id + "/calls.json" 
+      opts[:path] = (opts[:call_id]) ? "/" + @account_id + "/calls/" + opts[:call_id].to_s + ".json" : "/" + @account_id + "/calls.json"
       opts[:data] = "calls"  unless opts[:call_id]
       return get_responses(opts)
     end
 
     def get_calls_summary( opts={} )
-      opts[:path] =  (opts[:time_series] == true) ? "/" + @account_id + "/calls/timeseries.json" : "/" + @account_id + "/calls/summary.json" 
+      opts[:path] =  (opts[:time_series] == true) ? "/" + @account_id + "/calls/timeseries.json" : "/" + @account_id + "/calls/summary.json"
       return get_responses(opts)
     end
 
     def update_call(opts = {})
-      params = set_params(opts) 
+      params = set_params(opts)
       path =  "/" + @account_id + "/calls/" + opts[:call_id].to_s + ".json"
-      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth))      
+      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth))
     end
 
     def get_call_recording( opts={} )
@@ -212,9 +212,9 @@ module Callrail
       return get_responses(opts).first
     end
 
-    
 
-# Tracker     
+
+# Tracker
     def get_trackers(opts={})
       opts[:path] = (opts[:tracker_id]) ? "/" + @account_id + "/trackers/" + opts[:tracker_id].to_s + ".json" : "/" + @account_id + "/trackers.json"
       opts[:data] = "trackers" unless opts[:tracker_id]
@@ -230,14 +230,14 @@ module Callrail
     def update_tracker(opts={})
       path = "/" + @account_id + "/trackers/" + opts[:tracker_id].to_s + ".json"
       params = set_params(opts)
-      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth))  
+      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth))
     end
 
     def disable_tracker(opts={})
       path = "/" + @account_id + "/trackers/" + opts[:tracker_id].to_s + ".json"
       return parse_json(RestClient.delete(@url+path, :Authorization => @auth))
     end
-  
+
   # Integrations
     def get_integrations(opts ={})
       opts[:path] = (opts[:integration_id]) ? "/" + @account_id + "/integrations/" + opts[:integration_id].to_s + ".json" : "/" + @account_id + "/integrations.json"
@@ -252,9 +252,9 @@ module Callrail
     end
 
     def update_integration(opts = {})
-      params = set_params(opts) 
+      params = set_params(opts)
       path = "/" + @account_id + "/integrations/" + opts[:integration_id].to_s + ".json"
-      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth))      
+      return parse_json(RestClient.put(@url+path, params, :Authorization => @auth))
    end
 
    def disable_integration(opts={})
